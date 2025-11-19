@@ -10,5 +10,5 @@ def save_df_to_parquet(df, path: str, file_name: str):
         df.to_parquet(f"{path}/{file_name}", engine="pyarrow", index=False)
         logger.info(f"Parquet saved to {path}")
     except Exception as e:
-        # logger.error(f"Failed to save Parquet to {path}: {e}")
+        logger.error(f"Failed to save Parquet to {path}: {e}")
         raise
