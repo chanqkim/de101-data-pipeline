@@ -19,8 +19,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 8G
+          cpus: '2'
+          memory: 4G
 
   spark-worker-1:
     image: apache/spark:3.5.0
