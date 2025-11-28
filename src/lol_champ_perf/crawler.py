@@ -2,6 +2,7 @@ import time
 
 import pandas as pd
 import requests
+from airflow.decorators import dag, task
 from bs4 import BeautifulSoup
 
 from src.common.config import LOL_CHAMP_PERF_FILE_DIR
@@ -199,6 +200,7 @@ def fetch_champ_counters_to_df(
 
 
 # python operator to fetch all tier data
+@task
 def fetch_all_champion_tier(tier: str, position: str, region: str) -> pd.DataFrame:
     """
     Crawl OP.GG to fetch champion data for a specific tier, position, and region.
@@ -301,8 +303,9 @@ def fetch_all_champion_tier(tier: str, position: str, region: str) -> pd.DataFra
 
 
 # python operator to fetch champion build data in wide format
+@task
 def fetch_champion_build_data(
-    champion: str, position: str = "adc", tier: str = "all", region: str = "all"
+    champion: str, tier: str = "all", region: str = "all"
 ) -> pd.DataFrame:
     """
     Fetch detailed champion build data from OP.GG in wide format:
@@ -317,7 +320,7 @@ def fetch_champion_build_data(
 
     """
 
-    url = f"https://op.gg/lol/champions/{champion}/build/{position}?tier={tier}&region={region}"
+    url = f"https://op.gg/lol/champions/{champion}/build?tier={tier}&region={region}"
     logger.info(f"Requesting champion build page: {url}")
 
     headers = {
