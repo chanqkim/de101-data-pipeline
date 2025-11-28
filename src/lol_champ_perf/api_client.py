@@ -1,12 +1,10 @@
-import logging
-
 import pandas as pd
 import requests
+from airflow.decorators import task
 
 from src.common.config import LOL_CHAMP_PERF_FILE_DIR
 from src.common.file_handler import save_df_to_parquet
-
-logger = logging.getLogger()
+from src.common.logger import logger
 
 
 def fetch_json_from_url(url: str):
@@ -29,6 +27,7 @@ def fetch_json_from_url(url: str):
         return None
 
 
+@task
 def get_lol_champ_data():
     versions_url = "https://ddragon.leagueoflegends.com/api/versions.json"
 
