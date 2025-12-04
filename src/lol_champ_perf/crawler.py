@@ -62,7 +62,7 @@ def fetch_champion_item_builds(soup: BeautifulSoup, chamption_name: str) -> list
 
         if table:
             rows = table.select("tbody tr")
-            record = {"chamption_name": chamption_name}
+            record = {"champion_name": chamption_name}
 
             for build_index, row in enumerate(rows, start=1):
                 # get item names
