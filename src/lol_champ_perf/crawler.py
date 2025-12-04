@@ -350,6 +350,11 @@ def fetch_champion_build_data(
         champion_df = pd.DataFrame(champion_records)
         champion_df = fetch_champ_counters_to_df(soup=soup, dataframe=champion_df)
 
+        # add overall pick, win rate, game count
+        champion_df["overall_pick_rate"] = champ_pic_ban_win_data.get("pick_rate")
+        champion_df["overall_ban_rate"] = champ_pic_ban_win_data.get("ban_rate")
+        champion_df["overall_win_rate"] = champ_pic_ban_win_data.get("win_rate")
+
         return champion_df
     except Exception as e:
         logger.error(f"Failed to fetch page for {champion}: {e}")
