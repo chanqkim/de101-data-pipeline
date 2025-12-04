@@ -199,6 +199,143 @@ def fetch_champ_counters_to_df(
         logger.error(f"Failed to extract champ counters: {e}")
 
 
+# spilit champion build data into fact tables
+def split_fetch_champion_build_data_into_fact_tables(df: pd.DataFrame):
+    """
+    Split the champion build data DataFrame into multiple fact tables for star schema.
+
+    Fact 1: Champion daily meta statistics
+        Table: fact_lol_champion_meta_daily
+        Columns: std_date, champion_name, overall_pick_rate, overall_ban_rate, overall_win_rate
+
+    Fact 2: Champion daily top 5 item builds
+        Table: fact_lol_champion_top5_builds_daily
+        Columns: std_date, champion_name, build_rank (1~5), build_item1~3, build_pick_rate, build_win_rate, build_game_count
+
+    Fact 3: Champion daily top 5 easy/hard matchups
+        Table: fact_lol_champion_daily_top5_easy_hard_matchups
+        Columns: std_date, champion_name,
+                 weak_champ_name1~5, weak_champ1~5_winrate, weak_champ1~5_gamecount,
+                 strong_champ_name1~5, strong_champ1~5_winrate, strong_champ1~5_gamecount
+    """
+
+    df_list = []
+
+    # Fact 1: Daily champion meta statistics
+    fact_df1 = df[
+        [
+            "std_date",
+            "champion_name",
+            "overall_pick_rate",
+            "overall_ban_rate",
+            "overall_win_rate",
+        ]
+    ]
+    df_list.append(fact_df1)
+
+    # Fact 2: Top 5 item builds
+    fact_df2 = df[
+        [
+            "std_date",
+            "champion_name",
+            "build1_item1",
+            "build1_item2",
+            "build1_item3",
+            "build1_game_count",
+            "build1_pick_rate",
+            "build1_win_rate",
+            "build2_item1",
+            "build2_item2",
+            "build2_item3",
+            "build2_game_count",
+            "build2_pick_rate",
+            "build2_win_rate",
+            "build3_item1",
+            "build3_item2",
+            "build3_item3",
+            "build3_game_count",
+            "build3_pick_rate",
+            "build3_win_rate",
+            "build4_item1",
+            "build4_item2",
+            "build4_item3",
+            "build4_game_count",
+            "build4_pick_rate",
+            "build4_win_rate",
+            "build5_item1",
+            "build5_item2",
+            "build5_item3",
+            "build5_game_count",
+            "build5_pick_rate",
+            "build5_win_rate",
+        ]
+    ]
+    df_list.append(fact_df2)
+
+    # Fact 3: Top 5 easy/hard matchups
+    fact_df3 = df[
+        [
+            "std_date",
+            "champion_name",
+            "weak_champ_name1",
+            "weak_champ1_winrate",
+            "weak_champ1_gamecount",
+            "weak_champ_name2",
+            "weak_champ2_winrate",
+            "weak_champ2_gamecount",
+            "weak_champ_name3",
+            "weak_champ3_winrate",
+            "weak_champ3_gamecount",
+            "weak_champ_name4",
+            "weak_champ4_winrate",
+            "weak_champ4_gamecount",
+            "weak_champ_name5",
+            "weak_champ5_winrate",
+            "weak_champ5_gamecount",
+            "strong_champ_name1",
+            "strong_champ1_winrate",
+            "strong_champ1_gamecount",
+            "strong_champ_name2",
+            "strong_champ2_winrate",
+            "strong_champ2_gamecount",
+            "strong_champ_name3",
+            "strong_champ3_winrate",
+            "strong_champ3_gamecount",
+            "strong_champ_name4",
+            "strong_champ4_winrate",
+            "strong_champ4_gamecount",
+            "strong_champ_name5",
+            "strong_champ5_winrate",
+            "strong_champ5_gamecount",
+        ]
+    ]
+    df_list.append(fact_df3)
+
+    table_name_list = [
+        "fact_lol_champion_meta_daily",
+        "fact_lol_champion_top5_builds_daily",
+        "fact_lol_champion_daily_top5_easy_hard_matchups",
+    ]
+
+    # Save each fact table to parquet with std_date in the filename
+    for i, fact_df in enumerate(df_list):
+        table_name = table_name_list[i]
+
+        try:
+            # If std_date column exists, get first value (assumes all rows same date)
+            std_date_str = (
+                fact_df["std_date"].iloc[0]
+                if "std_date" in fact_df.columns
+                else "unknown_date"
+            )
+            file_name = f"{table_name}_{std_date_str}.parquet"
+
+            save_df_to_parquet(fact_df, LOL_CHAMP_PERF_FILE_DIR, file_name)
+            logger.info(f"Saved fact table {table_name} to {file_name}")
+        except Exception as e:
+            logger.error(f"Failed to save fact table {table_name}: {e}")
+
+
 # python operator to fetch all tier data
 @task
 def fetch_all_champion_tier(tier: str, position: str, region: str) -> pd.DataFrame:
@@ -354,6 +491,12 @@ def fetch_champion_build_data(
         champion_df["overall_pick_rate"] = champ_pic_ban_win_data.get("pick_rate")
         champion_df["overall_ban_rate"] = champ_pic_ban_win_data.get("ban_rate")
         champion_df["overall_win_rate"] = champ_pic_ban_win_data.get("win_rate")
+
+        # add std_date: crawl date
+        champion_df["std_date"] = pd.to_datetime("today").strftime("%Y-%m-%d")
+
+        # split dataframe into fact table dataframes
+        split_fetch_champion_build_data_into_fact_tables(champion_df)
 
         return champion_df
     except Exception as e:
