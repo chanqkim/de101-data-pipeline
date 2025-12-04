@@ -336,9 +336,107 @@ def split_fetch_champion_build_data_into_fact_tables(df: pd.DataFrame):
             logger.error(f"Failed to save fact table {table_name}: {e}")
 
 
+def fetch_champion_synergies(
+    champion: str, tier: str = "all", region: str = "global", std_date: str = "unknown"
+):
+    """
+    Fetch champion synergies from OP.GG and an save wide format parquet file.
+    """
+    url = (
+        f"https://op.gg/lol/champions/{champion}/synergies?tier={tier}&region={region}"
+    )
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    results = []
+
+    # select entire section containing position synergy information
+    sections = soup.select("#content-container > div > section")
+
+    # loop through sections to extract synergy data
+    for sec in sections:
+        # get position name
+        header_div = sec.select_one(
+            "div.relative.flex.items-center.justify-between > div.px-3.py-2"
+        )
+        pos_name = (
+            header_div.text.strip().replace("Synergies with ", "").lower()
+            if header_div
+            else "unknown"
+        )
+
+        # select tbody containing synergy champion data
+        tbody = sec.select_one("table > tbody")
+        if not tbody:
+            continue
+
+        # loop through each row to extract synergy champion data
+        for row in tbody.select("tr"):
+            synergy_champion_name = row.select_one("td a strong").text.strip()
+            pick_rate = row.select("td")[1].select_one("strong").text.strip()
+            pick_count = row.select("td")[1].select_one("div").text.strip()
+            win_rate = row.select("td")[2].select_one("strong").text.strip()
+
+            results.append(
+                {
+                    "position": pos_name,
+                    "synergy_champion_name": synergy_champion_name,
+                    "pick_rate": pick_rate,
+                    "pick_count": pick_count,
+                    "win_rate": win_rate,
+                }
+            )
+
+    # create dataframe from results
+    df = pd.DataFrame(results)
+
+    # create champion_name column for merging later
+    df["champion_name"] = champion
+
+    # sort chamption list with pick rate descending order and assign rank
+    df["pick_rate_float"] = df["pick_rate"].str.rstrip("%").astype(float)
+
+    df["rank"] = (
+        df.sort_values(
+            ["champion_name", "position", "pick_rate_float"],
+            ascending=[True, True, False],
+        )
+        .groupby(["champion_name", "position"])
+        .cumcount()
+        + 1
+    )
+
+    # use pivot table to transform long dataframe to wide format
+    df_wide = df.pivot_table(
+        index="champion_name",
+        columns=["position", "rank"],
+        values=["synergy_champion_name", "pick_rate", "pick_count", "win_rate"],
+        aggfunc="first",
+    )
+
+    # flatten columns
+    df_wide.columns = [f"{pos}_rank{rank}_{val}" for val, pos, rank in df_wide.columns]
+    df_wide.reset_index(inplace=True)
+
+    # add std_date column
+    df_wide["std_date"] = std_date
+    file_name = f"fact_lol_{champion}_synergies_daily_{std_date}.parquet"
+
+    # save to parquet
+    try:
+        save_df_to_parquet(df_wide, LOL_CHAMP_PERF_FILE_DIR, file_name)
+        logger.info(f"Saved {file_name}")
+    except Exception as e:
+        logger.error(f"Failed to save {file_name}: {e}")
+
+
 # python operator to fetch all tier data
 @task
-def fetch_all_champion_tier(tier: str, position: str, region: str) -> pd.DataFrame:
+def fetch_all_champion_tier(
+    tier: str = "all", position: str = "all", region: str = "global"
+) -> pd.DataFrame:
     """
     Crawl OP.GG to fetch champion data for a specific tier, position, and region.
 
@@ -493,10 +591,16 @@ def fetch_champion_build_data(
         champion_df["overall_win_rate"] = champ_pic_ban_win_data.get("win_rate")
 
         # add std_date: crawl date
-        champion_df["std_date"] = pd.to_datetime("today").strftime("%Y-%m-%d")
+        std_date = pd.to_datetime("today").strftime("%Y-%m-%d")
+        champion_df["std_date"] = std_date
 
         # split dataframe into fact table dataframes
         split_fetch_champion_build_data_into_fact_tables(champion_df)
+
+        # crawll champion synergies and save wide format parquet
+        fetch_champion_synergies(
+            champion=champion, tier=tier, region=region, std_date=std_date
+        )
 
         return champion_df
     except Exception as e:
