@@ -219,6 +219,8 @@ def split_fetch_champion_build_data_into_fact_tables(df: pd.DataFrame):
                  strong_champ_name1~5, strong_champ1~5_winrate, strong_champ1~5_gamecount
     """
 
+    champion_name = df["champion_name"].iloc[0]
+
     df_list = []
 
     # Fact 1: Daily champion meta statistics
@@ -328,7 +330,7 @@ def split_fetch_champion_build_data_into_fact_tables(df: pd.DataFrame):
                 if "std_date" in fact_df.columns
                 else "unknown_date"
             )
-            file_name = f"{table_name}_{std_date_str}.parquet"
+            file_name = f"{table_name}_{champion_name}_{std_date_str}.parquet"
 
             save_df_to_parquet(fact_df, LOL_CHAMP_PERF_FILE_DIR, file_name)
             logger.info(f"Saved fact table {table_name} to {file_name}")
