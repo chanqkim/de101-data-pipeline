@@ -1,3 +1,4 @@
+import random
 import time
 
 import pandas as pd
@@ -5,9 +6,34 @@ import requests
 from airflow.decorators import dag, task
 from bs4 import BeautifulSoup
 
-from src.common.config import LOL_CHAMP_PERF_FILE_DIR
+from src.common.config import DEFAULT_HEADER, LOL_CHAMP_PERF_FILE_DIR
 from src.common.file_handler import save_df_to_parquet
 from src.common.logger import logger
+
+
+# function to fetch resource with error handling and random delay
+def fetch_resource(url: str) -> requests.Response:
+    """
+    Fetch resource from the given URL with error handling.
+
+    Args:
+        url (str): The URL to fetch.
+
+    Returns:
+        requests.Response: The response object if the request is successful.
+    """
+    try:
+        time.sleep(random.uniform(1, 3))  # random delay between 1 to 3 seconds
+        response = requests.get(
+            url,
+            headers=DEFAULT_HEADER,
+            timeout=5,  # avoid hanging forever
+        )
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        return response
+    except Exception as e:
+        logger.error(f"Failed to fetch resource from {url}: {e}")
+        return None
 
 
 # extract champion pick rate, ban rate, and win rate
@@ -347,9 +373,8 @@ def fetch_champion_synergies(
     url = (
         f"https://op.gg/lol/champions/{champion}/synergies?tier={tier}&region={region}"
     )
-    headers = {"User-Agent": "Mozilla/5.0"}
-
-    response = requests.get(url, headers=headers)
+    logger.info(f"Requesting champion synergy page: {url}")
+    response = fetch_resource(url)
     soup = BeautifulSoup(response.text, "html.parser")
 
     results = []
@@ -459,18 +484,9 @@ def fetch_all_champion_tier(
     url = f"https://op.gg/lol/champions?tier={tier}&position={position}&region={region}"
     logger.info(f"Requesting page: {url}")
 
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        )
-    }
-
     # Step 1: Fetch HTML and parse
     try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        response = fetch_resource(url)
         soup = BeautifulSoup(response.text, "html.parser")
     except Exception as e:
         logger.error(f"Failed to fetch or parse page: {e}")
@@ -560,16 +576,8 @@ def fetch_champion_build_data(
     url = f"https://op.gg/lol/champions/{champion}/build?tier={tier}&region={region}"
     logger.info(f"Requesting champion build page: {url}")
 
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        )
-    }
-
     try:
-        response = requests.get(url, headers=headers)
+        response = fetch_resource(url)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
 
