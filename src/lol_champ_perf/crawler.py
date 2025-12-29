@@ -86,6 +86,42 @@ def extract_champion_build_position(soup: BeautifulSoup) -> str | None:
     return href.split("/build/")[1].split("?")[0]
 
 
+# extract item name from img and container for support champions
+def extract_item_name(img, container) -> str | None:
+    """
+    extact item name for support champions in OP.GG
+    extraction priority
+    1. img alt
+    2. img title
+    3. strong / span text in container
+    4. fallback: item_id
+    """
+
+    # 1) alt
+    alt = img.get("alt")
+    if alt:
+        return alt.strip()
+
+    # 2) title
+    title = img.get("title")
+    if title:
+        return title.strip()
+
+    # 3) support item text
+    text_el = container.select_one("strong, span")
+    if text_el:
+        text = text_el.get_text(strip=True)
+        if text:
+            return text
+
+    # 4) fallback: item_id
+    src = img.get("src", "")
+    if "/item/" in src:
+        return src.split("/item/")[-1].split(".png")[0]
+
+    return None
+
+
 # extract detailed champion build data
 def fetch_champion_item_builds(soup: BeautifulSoup, chamption_name: str) -> list:
     """
