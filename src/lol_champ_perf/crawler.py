@@ -122,7 +122,7 @@ def extract_item_name(img, container) -> str | None:
     return None
 
 
-# extract detailed champion build data
+# extract detailed champion build data except support builds
 def fetch_champion_item_builds(soup: BeautifulSoup, chamption_name: str) -> list:
     """
     Fetch detailed champion build data from OP.GG in long format:
@@ -182,6 +182,95 @@ def fetch_champion_item_builds(soup: BeautifulSoup, chamption_name: str) -> list
         logger.error(f"Failed to fetch champion builds for {chamption_name}: {e}")
 
     logger.info(f"Fetched {len(records)} rows of champion item builds")
+    return records
+
+
+# extract support position champion build data
+def fetch_support_item_builds(soup: BeautifulSoup, champion_name: str) -> list:
+    """
+    Fetch detailed support champion build data from OP.GG in long format:
+    - Each item in each build = 1 row
+    - Columns: champion, build_index, item_index, item_name, pick_rate, game_count, win_rate
+    """
+
+    records = []
+
+    try:
+        core_table = None
+
+        # search core build tablex
+        for table in soup.select("table"):
+            first_row = table.select_one("tbody tr")
+            if not first_row:
+                continue
+
+            first_td = first_row.select_one("td:nth-of-type(1)")
+            if not first_td:
+                continue
+
+            imgs = first_td.select("img[src*='/item/']")
+            if len(imgs) >= 3:
+                core_table = table
+                break
+
+        if not core_table:
+            logger.error(f"[WARN] Support core build table not found: {champion_name}")
+            return records
+
+        rows = core_table.select("tbody tr")
+        logger.info(f"[INFO] Found {len(rows)} support build rows for {champion_name}")
+
+        record = {"champion_name": champion_name}
+
+        for build_index, row in enumerate(rows, start=1):
+            items = []
+
+            item_td = row.select_one("td:nth-of-type(1)")
+            if item_td:
+                for container in item_td.select("div, a"):
+                    img = container.select_one("img[src*='/item/']")
+                    if not img:
+                        continue
+
+                    name = extract_item_name(img, container)
+                    if name:
+                        items.append(name)
+
+                    if len(items) == 3:
+                        break
+
+            # normalize
+            while len(items) < 3:
+                items.append(None)
+
+            # ---------- STATS ----------
+            pick_td = row.select_one("td:nth-of-type(2)")
+            win_td = row.select_one("td:nth-of-type(3)")
+            if not pick_td or not win_td:
+                continue
+
+            pick_rate = float(pick_td.select_one("strong").text.replace("%", ""))
+            game_count = int(
+                pick_td.select_one("span")
+                .text.replace("Games", "")
+                .replace(",", "")
+                .strip()
+            )
+            win_rate = float(win_td.select_one("strong").text.replace("%", ""))
+
+            # ---------- WIDE ----------
+            for idx, item_name in enumerate(items, start=1):
+                record[f"build{build_index}_item{idx}"] = item_name
+
+            record[f"build{build_index}_pick_rate"] = pick_rate
+            record[f"build{build_index}_game_count"] = game_count
+            record[f"build{build_index}_win_rate"] = win_rate
+
+        records.append(record)
+
+    except Exception as e:
+        logger.error(f"[ERROR] fetch_support_item_builds({champion_name}): {e}")
+
     return records
 
 
