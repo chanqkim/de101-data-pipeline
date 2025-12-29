@@ -732,8 +732,15 @@ def fetch_champion_build_data(
             f"Fetched {champion} build data - Pick Rate: {champ_pic_ban_win_data['pick_rate']}, Ban Rate: {champ_pic_ban_win_data['ban_rate']}, Win Rate: {champ_pic_ban_win_data['win_rate']}"
         )
 
-        # --- Core Builds table ---
-        champion_records = fetch_champion_item_builds(soup, champion)
+        # identify champion position
+        position = extract_champion_build_position(soup)
+        logger.info(f"[INFO] {champion} active build position: {position}")
+
+        # Get core item build based on champion position
+        if position == "support":
+            champion_records = fetch_support_item_builds(soup, champion)
+        else:
+            champion_records = fetch_champion_item_builds(soup, champion)
 
         # add strong, weak champions
         champion_df = pd.DataFrame(champion_records)
