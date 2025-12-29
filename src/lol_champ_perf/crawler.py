@@ -67,6 +67,25 @@ def fetch_champ_win_ban_pic_rate(soup: BeautifulSoup) -> dict:
     return result
 
 
+# extract champion build poisition
+def extract_champion_build_position(soup: BeautifulSoup) -> str | None:
+    """
+    Extract op.gg champion build position using BeautifulSoup object.
+    return position string or None if not found.
+    """
+    active_link = soup.select_one("a[href*='/build/'].bg-main-500")
+
+    if not active_link:
+        return None
+
+    href = active_link.get("href", "")
+    # /lol/champions/Ahri/build/mid?tier=all&region=all
+    if "/build/" not in href:
+        return None
+
+    return href.split("/build/")[1].split("?")[0]
+
+
 # extract detailed champion build data
 def fetch_champion_item_builds(soup: BeautifulSoup, chamption_name: str) -> list:
     """
