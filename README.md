@@ -1,18 +1,32 @@
 # de101‑data‑pipeline
 ## 📖 Project Overview
 
-`de101-data-pipeline` is a learning/proof‑of‑concept project to build batch ETL pipelines for multiple data domains such as stock market data and game logs. The goal is to practice and demonstrate:
+`de101-data-pipeline` is a data engineering project designed to build and manage
+multiple batch ETL pipelines across different data domains using a shared,
+scalable architecture.
 
-- **Orchestration**: Using Apache Airflow to schedule and run workflows  
-- **Data Validation**: Applying Great Expectations to validate data after extraction  
-- **Transformation**: Using dbt to perform further modeling and transformations  
-- **Scalable Deployment**: Containerization with Docker and eventual deployment to Kubernetes via Helm  
+The repository focuses on demonstrating production-oriented data engineering
+practices, including workflow orchestration, data quality validation,
+analytical data modeling, and containerized deployment.
 
-This project is ideal for anyone looking to build hands‑on experience in a full-fledged data engineering pipeline.
+The project is structured as a multi-pipeline platform where each data domain
+is implemented as an independent Airflow DAG with reusable pipeline components.
 
 ---
 
-## 📂 Directory Structure
+## 🎯 Key Objectives
+
+- Orchestrate batch data pipelines using **Apache Airflow**
+- Enforce data quality standards with **Great Expectations**
+- Model and transform data using **DBT**, **DuckDB**, **Apache Spark**
+- Promote reusability and scalability through modular pipeline design
+- Enable local and cloud-ready execution via **Docker-based environments**
+
+---
+
+## 📂 Repository Structure
+
+
 ```
 de101-data-pipeline/
 ├── dags/
