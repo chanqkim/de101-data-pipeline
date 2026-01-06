@@ -80,43 +80,28 @@ de101-data-pipeline/
 
 ```mermaid
 flowchart LR
-    %% --- Airflow Trigger ---
-    A[Airflow DAG Triggered] --> B[Extract Raw Data]
+    A[Airflow DAG Triggered] --> B[Bronze Layer: Raw JSON / Parquet]
+    B --> C[Data Validation: Great Expectations]
+    C --> D[Silver Layer: Cleaned & Merged Tables]
+    D --> E["Transformation: dbt / DuckDB / Spark"]
+    E --> F[Gold Layer / Feature Mart: Analytics-ready Tables / Vectors]
+    F --> G[Downstream Consumption: Dashboards, ML Models, API]
 
-    %% --- Bronze Layer ---
-    B --> C[Bronze Layer\n(Raw JSON / Parquet)]
-    
-    %% --- Data Validation ---
-    C --> D[Data Validation\n(Great Expectations)]
-    
-    %% --- Silver Layer ---
-    D --> E[Silver Layer\n(Cleaned & Merged Tables)]
-    
-    %% --- Transformation / Feature Engineering ---
-    E --> F[Transformation / Feature Engineering\n(dbt / DuckDB / Spark)]
-    
-    %% --- Gold Layer / Feature Mart ---
-    F --> G[Gold Layer / Feature Mart\n(Analytics-ready Tables / Vectors)]
-    
-    %% --- Downstream Consumption ---
-    G --> H[Downstream Consumption\n(Dashboards, ML Models, API)]
-
-    %% --- Styling ---
     classDef trigger fill:#f9f,stroke:#333,stroke-width:1px;
-    classDef raw fill:#ffeb99,stroke:#333,stroke-width:1px;
-    classDef validation fill:#bbf,stroke:#333,stroke-width:1px;
+    classDef bronze fill:#ffeb99,stroke:#333,stroke-width:1px;
+    classDef val fill:#bbf,stroke:#333,stroke-width:1px;
     classDef silver fill:#a0e0ff,stroke:#333,stroke-width:1px;
-    classDef transform fill:#89d389,stroke:#333,stroke-width:1px;
+    classDef tf fill:#89d389,stroke:#333,stroke-width:1px;
     classDef gold fill:#f3d46b,stroke:#333,stroke-width:1px;
     classDef output fill:#bfb,stroke:#333,stroke-width:1px;
 
     class A trigger;
-    class B,C raw;
-    class D validation;
-    class E silver;
-    class F transform;
-    class G gold;
-    class H output;
+    class B bronze;
+    class C val;
+    class D silver;
+    class E tf;
+    class F gold;
+    class G output;
 ```
 ---
 
