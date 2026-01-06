@@ -84,22 +84,22 @@ flowchart LR
     A[Airflow DAG Triggered] --> B[Extract Raw Data]
 
     %% --- Bronze Layer ---
-    B --> C[Bronze Layer<br/>(Raw JSON / Parquet)]
+    B --> C[Bronze Layer\n(Raw JSON / Parquet)]
     
     %% --- Data Validation ---
-    C --> D[Data Validation<br/>(Great Expectations)]
+    C --> D[Data Validation\n(Great Expectations)]
     
     %% --- Silver Layer ---
-    D --> E[Silver Layer<br/>(Cleaned & Merged Tables)]
+    D --> E[Silver Layer\n(Cleaned & Merged Tables)]
     
     %% --- Transformation / Feature Engineering ---
-    E --> F[Transformation / Feature Engineering<br/>(dbt / DuckDB / Spark)]
+    E --> F[Transformation / Feature Engineering\n(dbt / DuckDB / Spark)]
     
     %% --- Gold Layer / Feature Mart ---
-    F --> G[Gold Layer / Feature Mart<br/>(Analytics-ready Tables / Vectors)]
+    F --> G[Gold Layer / Feature Mart\n(Analytics-ready Tables / Vectors)]
     
     %% --- Downstream Consumption ---
-    G --> H[Downstream Consumption<br/>(Dashboards, ML Models, API)]
+    G --> H[Downstream Consumption\n(Dashboards, ML Models, API)]
 
     %% --- Styling ---
     classDef trigger fill:#f9f,stroke:#333,stroke-width:1px;
@@ -117,7 +117,7 @@ flowchart LR
     class F transform;
     class G gold;
     class H output;
-```    
+```
 ---
 
 ## 🛠 Technology Stack
