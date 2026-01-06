@@ -1,9 +1,21 @@
-# de101‑data‑pipeline
+# de101-data-pipeline
+
+![Python](https://img.shields.io/badge/python-3.13.7+-red)
+![Beautifulsoup4](https://img.shields.io/badge/beautifulsoup4-4.12.2-orange)
+![Airflow](https://img.shields.io/badge/airflow-3.1.3+-yellow)
+![Great Expectations](https://img.shields.io/badge/great_expectations-1.10.0-green)
+![pandas](https://img.shields.io/badge/pandas-2.2.3-blue)
+![pyarrow](https://img.shields.io/badge/pyarrow-22.0.0-azure)
+![duckdb](https://img.shields.io/badge/duckdb-1.4.3-purple)
+![duckdb_engine](https://img.shields.io/badge/duckdb_engine-0.17.0-red)
+![astronomer-cosmos](https://img.shields.io/badge/astronomer--cosmos-1.12.0-orange)
+![dbt-duckdb](https://img.shields.io/badge/dbt--duckdb-1.10.0-yellow)
+![dbt-spark](https://img.shields.io/badge/dbt--spark-1.10.0-green)
+
 ## 📖 Project Overview
 
-`de101-data-pipeline` is a data engineering project designed to build and manage
-multiple batch ETL pipelines across different data domains using a shared,
-scalable architecture.
+`de101-data-pipeline` is a **production-oriented data engineering project** designed to build and manage
+multiple batch ETL pipelines across different data domains using a **scalable, modular architecture**.
 
 The repository focuses on demonstrating production-oriented data engineering
 practices, including workflow orchestration, data quality validation,
@@ -11,144 +23,160 @@ analytical data modeling, and containerized deployment.
 
 The project is structured as a multi-pipeline platform where each data domain
 is implemented as an independent Airflow DAG with reusable pipeline components.
+---
+
+Key focus areas:
+
+- **Workflow orchestration** with Apache Airflow  
+- **Data quality validation** using Great Expectations  
+- **Analytical modeling and transformation** via DBT, DuckDB, and Apache Spark  
+- **Containerized deployment** for local and cloud-ready environments using  
+
+Each data domain is implemented as an **independent Airflow DAG**, while reusable pipeline logic lives in `src/`, promoting **testability, maintainability, and scalability**.
 
 ---
 
 ## 🎯 Key Objectives
-
-- Orchestrate batch data pipelines using **Apache Airflow**
-- Enforce data quality standards with **Great Expectations**
-- Model and transform data using **DBT**, **DuckDB**, **Apache Spark**
-- Promote reusability and scalability through modular pipeline design
-- Enable local and cloud-ready execution via **Docker-based environments**
-
+- ✅ Maintain modular and reusable DAGs
+- ✅ Ensure data quality and validation throughout the pipeline
+- ✅ Enable scalable batch and cloud-ready ETL
+- ✅ Support easy local development and testing
+- ✅ Promote clear separation of concerns between orchestration, transformation, and storage
 ---
 
 ## 📂 Repository Structure
 
-
 ```
 de101-data-pipeline/
-├── dags/
-│   ├── project1/
-│   │   ├── etl/               # Airflow DAGs for ETL tasks
-│   │   ├── ge_checks/         # DAGs for Great Expectations validations
-│   │   └── dbt/models/        # dbt models for the project/domain
-│   └── other_domain/          # Placeholder for future domains
-├── plugins/                    # Custom Airflow Operators, Hooks, and Sensors
-├── src/                        # ETL modules (extract / transform / load)
-├── configs/                     # Configuration files per environment
-│   ├── dev.yaml
-│   └── prod.yaml
-├── docker/                      # Dockerfiles & docker-compose for local setup
-│   ├── Dockerfile.airflow
-│   └── docker-compose.yaml
-├── helm/airflow/                # Helm chart for Kubernetes deployment
-│   ├── Chart.yaml
-│   ├── values.yaml
-│   ├── templates/
-│   │   └── airflow-deployment.yaml
-│   └── secrets/
-│       └── airflow-connections.yaml
-├── tests/                       # Unit tests for DAGs, src modules, plugins
-├── requirements.txt
-└── .env
+├── airflow
+│   ├── dags/           # Airflow DAG definitions organized by data domain
+│   │   ├── lol_champ_perf/  # DAGs for League of Legends champion performance pipelines
+│   │   └── other_domain/    # DAGs for other data domains
+│   ├── .env             # Environment variables for Airflow
+│   ├── Dockerfile       # Dockerfile for Airflow container
+│   ├── docker-compose.yml # Docker Compose setup for local Airflow deployment
+├── dbt/                 # dbt project for transformations and modeling
+├── helm/
+│   ├── airflow/         # Helm charts for deploying Airflow on Kubernetes
+│   ├── spark/           # Helm charts for deploying Spark cluster on Kubernetes
+├── spark-cluster/       # Spark cluster setup for local development / testing
+│   ├── docker-compose.yml # Docker Compose setup for local Spark cluster
+├── src/                 # Reusable pipeline logic (extract, validate, load, transform)
+│   ├── common
+│   │   └── config.py    # Project-wide configuration constants
+│   │   └── file_handler.py # Utilities for file I/O (parquet, csv, etc.)
+│   │   └── logger.py    # Logging utilities
+│   ├── lol_champ_perf   # Domain-specific pipeline logic for LoL champion performance
+├── tests/               # Unit and integration tests for DAGs and pipeline modules
+├── requirements.txt     # Python dependencies for the project
+
 ```
 
+> Each DAG is kept **thin**, delegating all execution logic to `src/` for **reusability and maintainability**.
 
+---
+
+## 🔄 Typical Pipeline Flow
+
+```mermaid
+flowchart LR
+    %% --- Airflow Trigger ---
+    A[Airflow DAG Triggered] --> B[Extract Raw Data]
+
+    %% --- Bronze Layer ---
+    B --> C[Bronze Layer<br/>(Raw JSON / Parquet)]
+    
+    %% --- Data Validation ---
+    C --> D[Data Validation<br/>(Great Expectations)]
+    
+    %% --- Silver Layer ---
+    D --> E[Silver Layer<br/>(Cleaned & Merged Tables)]
+    
+    %% --- Transformation / Feature Engineering ---
+    E --> F[Transformation / Feature Engineering<br/>(dbt / DuckDB / Spark)]
+    
+    %% --- Gold Layer / Feature Mart ---
+    F --> G[Gold Layer / Feature Mart<br/>(Analytics-ready Tables / Vectors)]
+    
+    %% --- Downstream Consumption ---
+    G --> H[Downstream Consumption<br/>(Dashboards, ML Models, API)]
+
+    %% --- Styling ---
+    classDef trigger fill:#f9f,stroke:#333,stroke-width:1px;
+    classDef raw fill:#ffeb99,stroke:#333,stroke-width:1px;
+    classDef validation fill:#bbf,stroke:#333,stroke-width:1px;
+    classDef silver fill:#a0e0ff,stroke:#333,stroke-width:1px;
+    classDef transform fill:#89d389,stroke:#333,stroke-width:1px;
+    classDef gold fill:#f3d46b,stroke:#333,stroke-width:1px;
+    classDef output fill:#bfb,stroke:#333,stroke-width:1px;
+
+    class A trigger;
+    class B,C raw;
+    class D validation;
+    class E silver;
+    class F transform;
+    class G gold;
+    class H output;
+```    
 ---
 
 ## 🛠 Technology Stack
-- **Orchestration**: Apache Airflow  
-- **Validation**: Great Expectations  
-- **Modeling / Transformation**: dbt  
-- **Containerization**: Docker Compose  
-- **Deployment (future)**: Kubernetes + Helm  
-- **Storage / Targets**: S3 / MinIO, Databricks  
+
+| Category                  | Technology                                      |
+|----------------------------|------------------------------------------------|
+| Workflow Orchestration     | Apache Airflow                                 |
+| Data Quality               | Great Expectations                             |
+| Data Modeling / Transformation | dbt, DuckDB, Apache Spark                  |
+| Containerization           | Docker, Kubernetes                          |
+| Storage / Analytics        | S3 / MinIO                       |
 
 ---
+## 📂 Data Domains
 
-## 🚀 Getting Started
+Each data domain is implemented as an independent Airflow DAG with reusable pipeline components.
+
+- [League of Legends Champion Performance](airflow/dags/lol_champ_perf/README.md)
+
+## 🚀 Local Development
 
 ### Prerequisites
 
 - Docker & Docker Compose  
-- (Optional) Access credentials for S3 / MinIO or Databricks  
-- Python 3.9+ (for local dev)  
+- Python 3.13.7+ (optional for local development)  
+- Access credentials for object storage (S3 / MinIO)
 
-### Local Setup
+### Setup & Run
 
-1. Clone the repository  
-   ```bash
-   git clone https://github.com/your-username/de101-data-pipeline.git
-   cd de101-data-pipeline
+```bash
+# Clone repository
+git clone https://github.com/your-username/de101-data-pipeline.git
+cd de101-data-pipeline
+
+# Build and start containers
+## Airflow
+cd airflow
+docker compose up airflow-init
+
+## Spark Cluster
+cd spark-cluster
+docker compose up -d
+
+# Access Airflow UI
+http://localhost:8080
+```
+
+---
+
+## 📦 Configuration
+
+Environment-specific settings (storage endpoints, credentials, runtime parameters) are stored under `configs/`.
 
 
-Create a .env file based on the example (or config):
 
-AWS_ACCESS_KEY=your_access_key
-AWS_SECRET_KEY=your_secret_key
-S3_ENDPOINT=http://localhost:9000
+---
 
+## 🔗 References
 
-Build and start Airflow via Docker Compose:
-
-docker-compose up --build
-
-
-Open Airflow UI:
-Navigate to http://localhost:8080 in your browser.
-
-✅ Example Workflow
-
-Airflow triggers an ETL DAG (e.g. stock/etl/daily)
-
-ETL job extracts raw data, transforms it, and loads it into a staging location (S3 or Databricks)
-
-Once loaded, a GE validation DAG runs to check data quality
-
-If validation succeeds, a dbt DAG runs to model data and produce final tables
-
-📦 Configuration
-
-All environment-specific configurations are located in configs/:
-
-configs/dev.yaml — for local development
-
-configs/staging.yaml — for staging environment
-
-configs/prod.yaml — for production
-
-These config files define connections (S3, Databricks), credentials, and other environment variables.
-
-👥 Contributing
-
-Contributions are welcome! Here's how you can help:
-
-Fork the repository
-
-Create a new branch: git checkout -b feature/your-feature
-
-Make your changes (add DAG, improve src, etc.)
-
-Add / update tests under tests/
-
-Commit your changes: git commit -m "feat: description of your change"
-
-Push to your branch: git push origin feature/your-feature
-
-Open a Pull Request
-
-Please follow existing code style, and ensure new code is covered by tests.
-
-📄 License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-🔗 Links & Resources
-
-Airflow Documentation
-
-Great Expectations Documentation
-
-dbt Documentation
+- [Apache Airflow Documentation](https://airflow.apache.org/docs/)
+- [Great Expectations Documentation](https://greatexpectations.io/)
+- [dbt Documentation](https://docs.getdbt.com/)
