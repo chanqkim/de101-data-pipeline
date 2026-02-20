@@ -287,6 +287,12 @@ def validate_dataframe(
     # 7) Print Results
     _print_validation_results(result, fail_on_error)
 
+    # 8) Handle failure if hard rules and validation failed
+    if fail_on_error and not result.success:
+        raise RuntimeError(
+            f"Great Expectations validation for {df['champion_name'].unique()} failed"
+        )
+
     return result
 
 
