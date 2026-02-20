@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from src.common.config import DEFAULT_HEADER, LOL_CHAMP_PERF_FILE_DIR
 from src.common.file_handler import save_df_to_parquet
 from src.common.logger import logger
+from src.lol_champ_perf.data_validation.expectations import validate_dataframe
 
 
 # function to fetch resource with error handling and random delay
@@ -754,6 +755,13 @@ def fetch_champion_build_data(
         # add std_date: crawl date
         std_date = pd.to_datetime("today").strftime("%Y-%m-%d")
         champion_df["std_date"] = std_date
+
+        # validate dataframe with Great Expectations before splitting into fact tables
+        validate_dataframe(
+            df=champion_df,
+            suite_name="lol_champ_perf_suite",
+            fail_on_error=True,
+        )
 
         # split dataframe into fact table dataframes
         split_fetch_champion_build_data_into_fact_tables(champion_df)
