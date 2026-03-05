@@ -1,34 +1,18 @@
-# -------------------------
 # --- Airflow ---
-# -------------------------
 apache-airflow==3.1.5
-apache-airflow-providers-docker>=4.0.0
-apache-airflow-providers-amazon>=9.0.0
 
-# -------------------------
 # --- HTTP & Web scraping ---
-# -------------------------
 requests==2.32.5
 beautifulsoup4==4.14.2
 
-# -------------------------
 # --- Data processing ---
-# -------------------------
 pandas==2.2.3
 pyarrow==22.0.0
 duckdb==1.4.3
 duckdb_engine==0.17.0
 
-# -------------------------
 # --- Data quality ---
-# -------------------------
-great-expectations>=1.0.0
+great-expectations==1.10.0
 
-# -------------------------
-# --- DBT & Cosmos ---
-# -------------------------
-astronomer-cosmos[dbt-duckdb,dbt-spark]==1.12.0
-
-dbt-core==1.10.1
-dbt-duckdb==1.10.1
-dbt-spark==1.10.0
+# --- DBT Orchestration ---
+astronomer-cosmos==1.12.0
