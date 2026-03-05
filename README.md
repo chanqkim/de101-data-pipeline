@@ -1,15 +1,15 @@
 # de101-data-pipeline
 
-![Python](https://img.shields.io/badge/python-3.13.7+-red)
-![Beautifulsoup4](https://img.shields.io/badge/beautifulsoup4-4.12.2-orange)
-![Airflow](https://img.shields.io/badge/airflow-3.1.3+-yellow)
-![Great Expectations](https://img.shields.io/badge/great_expectations-1.10.0-green)
+![Python](https://img.shields.io/badge/python-3.11.8-blue)
+![Beautifulsoup4](https://img.shields.io/badge/beautifulsoup4-4.14.2-orange)
+![Airflow](https://img.shields.io/badge/airflow-3.1.5-yellow)
+![Great Expectations](https://img.shields.io/badge/great_expectations-1.x-green)
 ![pandas](https://img.shields.io/badge/pandas-2.2.3-blue)
 ![pyarrow](https://img.shields.io/badge/pyarrow-22.0.0-azure)
 ![duckdb](https://img.shields.io/badge/duckdb-1.4.3-purple)
 ![duckdb_engine](https://img.shields.io/badge/duckdb_engine-0.17.0-red)
 ![astronomer-cosmos](https://img.shields.io/badge/astronomer--cosmos-1.12.0-orange)
-![dbt-duckdb](https://img.shields.io/badge/dbt--duckdb-1.10.0-yellow)
+![dbt-duckdb](https://img.shields.io/badge/dbt--duckdb-1.10.1-yellow)
 ![dbt-spark](https://img.shields.io/badge/dbt--spark-1.10.0-green)
 
 ## 📖 Project Overview
