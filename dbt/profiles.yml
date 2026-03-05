@@ -1,0 +1,7 @@
+lol_champ_perf:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ./lol.duckdb
+      threads: 4
