@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: stg_lol_champion
+    columns:
+      - name: champion
+        tests:
+          - not_null
+
+  - name: stg_synergy
+    columns:
+      - name: champion
+        tests:
+          - not_null
+      - name: partner
+        tests:
+          - not_null
+
+  - name: stg_matchup
+    columns:
+      - name: champion
+        tests:
+          - not_null
+      - name: opponent
+        tests:
+          - not_null

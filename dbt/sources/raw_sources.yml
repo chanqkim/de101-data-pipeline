@@ -1,0 +1,81 @@
+version: 2
+
+sources:
+  - name: lol_chamlp_perf
+    description: "League of Legend (LOL) Champion Preformance data (crawlled from OP.GG, stored as raw parquet file in object bucket(e.g. S3))"
+    
+    database: s3
+    schema: lol_chamlp_perf
+
+    # freshness (Crawled data is updated daily, so we set freshness to 1 day)
+    freshness:
+      warn_after: {count: 1, period: day}
+      error_after: {count: 2, period: day}
+    loaded_at_field: date
+
+    tables:
+
+      # basic champion performance data (parquet)
+      - name: lol_champion
+        description: "Champion daily performance data (e.g. win rate, pick rate, ban rate)"
+
+        columns:
+          - name: champion
+            description: "champion name"
+            tests:
+              - not_null
+
+          - name: date
+            description: "crawlled date"
+            tests:
+              - not_null
+
+          - name: win_rate
+            description: "champion win-rate (0~100)"
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "win_rate BETWEEN 0 AND 100"
+
+      # 2. Champion Synergy Data(parquet)
+      - name: synergy
+        description: "Champion list that has high synergy (duo combination win rate)"
+
+        columns:
+          - name: champion
+            tests:
+              - not_null
+
+          - name: partner
+            tests:
+              - not_null
+
+          - name: date
+            tests:
+              - not_null
+
+          - name: win_rate
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "win_rate BETWEEN 0 AND 100"
+
+      # 3. Champion matchup data (champion list with highest/lowest win_rate) (parquet)
+      - name: matchup
+        description: "Champion matchup data (highest/lowest win_rate)"
+
+        columns:
+          - name: champion
+            tests:
+              - not_null
+
+          - name: opponent
+            tests:
+              - not_null
+
+          - name: date
+            tests:
+              - not_null
+
+          - name: win_rate
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "win_rate BETWEEN 0 AND 100"
