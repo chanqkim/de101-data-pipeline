@@ -1,0 +1,28 @@
+name: 'lol_chamlp_perf'
+version: '1.0'
+config-version: 2
+
+profile: 'lol_chamlp_perf'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  lol_chamlp_perf:
+
+    staging:
+      +materialized: view
+
+    marts:
+      +materialized: table
+
+on-run-start:
+  - "INSTALL httpfs"
+  - "LOAD httpfs"
+  - "SET s3_region='ap-northeast-2'"
+  - "SET s3_access_key_id='{{ env_var('AWS_ACCESS_KEY_ID') }}'"
+  - "SET s3_secret_access_key='{{ env_var('AWS_SECRET_ACCESS_KEY') }}'"
