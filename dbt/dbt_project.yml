@@ -23,6 +23,3 @@ models:
 on-run-start:
   - "INSTALL httpfs"
   - "LOAD httpfs"
-  - "SET s3_region='ap-northeast-2'"
-  - "SET s3_access_key_id='{{ env_var('AWS_ACCESS_KEY_ID') }}'"
-  - "SET s3_secret_access_key='{{ env_var('AWS_SECRET_ACCESS_KEY') }}'"

@@ -5,3 +5,13 @@ lol_champ_perf:
       type: duckdb
       path: ./lol.duckdb
       threads: 4
+
+      # auto load httpfs extension for S3 access
+      extensions:
+        - httpfs
+
+      # set s3 access settings for httpfs
+      settings:
+        s3_region: ap-northeast-2
+        s3_access_key_id: "{{ env_var('AWS_ACCESS_KEY_ID') }}"
+        s3_secret_access_key: "{{ env_var('AWS_SECRET_ACCESS_KEY') }}"
